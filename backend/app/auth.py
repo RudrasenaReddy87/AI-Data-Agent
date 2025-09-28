@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from passlib.context import CryptContext
-from jose import JWTError, jwt
+import jwt
+from jwt import PyJWTError
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -59,7 +60,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except JWTError:
+    except PyJWTError:
         raise credentials_exception
     db = SessionLocal()
     user = db.query(User).filter(User.email == email).first()
