@@ -8,8 +8,17 @@ load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
-    raise ValueError("DATABASE_URL environment variable is not set. Please check your .env file.")
+    DATABASE_URL = "sqlite:///users.db"  # Fallback to local SQLite database
 
-engine = create_engine(DATABASE_URL)
+try:
+    engine = create_engine(DATABASE_URL)
+    # Test the connection
+    with engine.connect() as conn:
+        pass
+except Exception as e:
+    print(f"Database connection failed: {e}, falling back to local SQLite")
+    DATABASE_URL = "sqlite:///users.db"
+    engine = create_engine(DATABASE_URL)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()

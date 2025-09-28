@@ -55,3 +55,6 @@ reference.html
 uploads/
 backend/uploads/
 backendappuploads/
+
+# Local user storage
+local_users.json

@@ -1,13 +1,14 @@
 from pydantic import BaseModel
 from passlib.context import CryptContext
 import jwt
-from jwt import PyJWTError
+from jwt import InvalidTokenError as PyJWTError
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from .database import SessionLocal
 from .models import User
 import os
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,6 +16,22 @@ load_dotenv()
 JWT_SECRET = os.getenv("JWT_SECRET", "your-secret-key-here-change-in-production")
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 security = HTTPBearer()
+
+# Local storage fallback
+local_users_file = "local_users.json"
+local_users = {}
+
+def load_local_users():
+    if os.path.exists(local_users_file):
+        with open(local_users_file, 'r') as f:
+            global local_users
+            local_users = json.load(f)
+
+def save_local_users():
+    with open(local_users_file, 'w') as f:
+        json.dump(local_users, f)
+
+load_local_users()
 
 class UserSignup(BaseModel):
     username: str

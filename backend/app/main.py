@@ -4,7 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import pandas as pd
 import os
 from dotenv import load_dotenv
-from .utils import clean_excel, analyze_data, generate_visualization
+from .utils import clean_excel, analyze_data
 import json
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -13,7 +13,7 @@ import base64
 from datetime import timedelta
 from .database import SessionLocal, engine, Base
 from .models import User
-from .auth import UserSignup, UserLogin, Token, hash_password, verify_password, create_access_token, get_current_user
+from .auth import UserSignup, UserLogin, Token, hash_password, verify_password, create_access_token, get_current_user, local_users, save_local_users
 
 load_dotenv()
 
@@ -47,29 +47,44 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 @app.post("/signup")
 async def register(user: UserSignup):
     """Register endpoint: Accepts username, email, password. Hashes password with bcrypt, saves user, returns success message."""
-    db = SessionLocal()
-    db_user = db.query(User).filter(User.email == user.email).first()
-    if db_user:
+    try:
+        db = SessionLocal()
+        db_user = db.query(User).filter(User.email == user.email).first()
+        if db_user:
+            db.close()
+            raise HTTPException(status_code=400, detail="Email already exists")
+        hashed = hash_password(user.password)
+        db_user = User(username=user.username, email=user.email, password=hashed)
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
         db.close()
-        raise HTTPException(status_code=400, detail="Email already exists")
-    hashed = hash_password(user.password)
-    db_user = User(username=user.username, email=user.email, password=hashed)
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    db.close()
-    return {"message": "User created successfully"}
+        return {"message": "User created successfully"}
+    except Exception as e:
+        print(f"DB error: {e}, using local storage")
+        if user.email in local_users:
+            raise HTTPException(status_code=400, detail="Email already exists")
+        local_users[user.email] = {"username": user.username, "password": hash_password(user.password)}
+        save_local_users()
+        return {"message": "User created successfully"}
 
 @app.post("/login")
 async def login(user: UserLogin):
     """Login endpoint: Accepts email, password. Verifies credentials, returns JWT token and welcome message with username."""
-    db = SessionLocal()
-    db_user = db.query(User).filter(User.email == user.email).first()
-    db.close()
-    if not db_user or not verify_password(user.password, db_user.password):
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    access_token = create_access_token(data={"sub": user.email}, expires_delta=timedelta(minutes=30))
-    return {"access_token": access_token, "token_type": "bearer", "message": f"Welcome back, {db_user.username}"}
+    try:
+        db = SessionLocal()
+        db_user = db.query(User).filter(User.email == user.email).first()
+        db.close()
+        if not db_user or not verify_password(user.password, db_user.password):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        access_token = create_access_token(data={"sub": user.email}, expires_delta=timedelta(minutes=30))
+        return {"access_token": access_token, "token_type": "bearer", "message": f"Welcome back, {db_user.username}"}
+    except Exception as e:
+        print(f"DB error: {e}, using local storage")
+        if user.email not in local_users or not verify_password(user.password, local_users[user.email]["password"]):
+            raise HTTPException(status_code=401, detail="Invalid credentials")
+        access_token = create_access_token(data={"sub": user.email}, expires_delta=timedelta(minutes=30))
+        return {"access_token": access_token, "token_type": "bearer", "message": f"Welcome back, {local_users[user.email]['username']}"}
 
 @app.get("/users")
 async def get_users(current_user: User = Depends(get_current_user)):
