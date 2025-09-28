@@ -1,23 +1,12 @@
-# Task: Store user details from login page in PostgreSQL database, reading .env
+# Deployment to Railway
 
-## Steps from Approved Plan:
+## Steps:
 
-1. [x] Create .env file in backend/ with DATABASE_URL for PostgreSQL and JWT_SECRET.
-   - Completed: .env created with provided DATABASE_URL.
-
-2. [x] Update database.py: Remove SQLite default to enforce PostgreSQL usage.
-   - Completed: Removed fallback, now requires .env DATABASE_URL.
-
-3. [x] Verify/Implement Frontend API Calls: Read and update App.jsx if needed to call /signup for registration (stores user) and /login for authentication.
-   - Completed: App.jsx already has handleRegister calling /signup (stores user details) and handleLogin calling /login. No changes needed.
-
-4. [x] Ensure Database Migration: Tables auto-created on startup. Backend started successfully, indicating Postgres connection.
-
-5. [x] Testing:
-   - Backend running on http://0.0.0.0:8000.
-   - To test: Register via frontend or API (POST /signup), then query Postgres DB to verify user stored.
-   - Example: curl -X POST http://localhost:8000/signup -H "Content-Type: application/json" -d '{"username":"test","email":"test@example.com","password":"pass"}'
-
-6. [ ] Cleanup: Remove ai_agent.db (SQLite) if no longer needed.
-
-Task Complete: User details entered on login page (register tab) are now stored in PostgreSQL database, with .env read for config.
+1. [x] Install Railway CLI globally using npm.
+2. [x] Login to Railway account.
+3. [x] Create a new Railway project.
+4. [x] Add PostgreSQL database to the project.
+5. [x] Deploy backend service: Link backend directory, set environment variables (DATABASE_URL, JWT_SECRET, OPENAI_API_KEY), deploy.
+6. [x] Deploy frontend service: Link frontend directory, deploy as static site.
+7. [x] Update frontend API base URL to the deployed backend URL.
+8. [x] Test the deployed application: Register, login, upload file, query data.

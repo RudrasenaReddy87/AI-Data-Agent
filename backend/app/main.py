@@ -21,13 +21,12 @@ app = FastAPI()
 
 @app.on_event("startup")
 def create_tables():
-    # Drop existing tables if schema changed (for development)
-    Base.metadata.drop_all(bind=engine)
+    # Create tables if they don't exist (no drop for production)
     Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "https://frontend-production-7fcb.up.railway.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

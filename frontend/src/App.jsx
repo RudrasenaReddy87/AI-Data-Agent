@@ -9,6 +9,8 @@ import Login from './Login'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Title, Tooltip, Legend)
 
+const API_BASE = 'https://backend-production-f293b.up.railway.app'
+
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [token, setToken] = useState('')
@@ -91,7 +93,7 @@ function App() {
   }, [isTyping, fullTypingMessage, question, currentResult])
 
   const handleLogin = async (email, password) => {
-    const response = await fetch('http://localhost:8000/login', {
+    const response = await fetch(`${API_BASE}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
@@ -103,7 +105,7 @@ function App() {
       localStorage.setItem('token', result.access_token)
 
       // Fetch user info to get username
-      const meResponse = await fetch('http://localhost:8000/me', {
+      const meResponse = await fetch(`${API_BASE}/me`, {
         headers: { 'Authorization': `Bearer ${result.access_token}` }
       })
       if (meResponse.ok) {
@@ -117,7 +119,7 @@ function App() {
   }
 
   const handleRegister = async (username, email, password) => {
-    const response = await fetch('http://localhost:8000/signup', {
+    const response = await fetch(`${API_BASE}/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, password })
@@ -150,7 +152,7 @@ function App() {
     const formData = new FormData()
     formData.append('file', file)
     try {
-      const response = await fetch('http://localhost:8000/upload-excel', {
+      const response = await fetch(`${API_BASE}/upload-excel`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -195,7 +197,7 @@ function App() {
     if (!question || !filePath) return
     setIsLoading(true)
     try {
-      const response = await fetch('http://localhost:8000/ask', {
+      const response = await fetch(`${API_BASE}/ask`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
