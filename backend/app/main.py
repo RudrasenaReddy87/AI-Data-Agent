@@ -21,8 +21,12 @@ app = FastAPI()
 
 @app.on_event("startup")
 def create_tables():
-    # Create tables if they don't exist (no drop for production)
-    Base.metadata.create_all(bind=engine)
+    try:
+        # Create tables if they don't exist (no drop for production)
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        print(f"Error creating tables: {e}")
+        # Continue starting the app even if DB connection fails
 
 app.add_middleware(
     CORSMiddleware,
