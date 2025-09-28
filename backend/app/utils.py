@@ -5,15 +5,12 @@ from datetime import datetime
 from sklearn.linear_model import LinearRegression
 from sklearn.cluster import KMeans
 import numpy as np
-import matplotlib.pyplot as plt
-import io
-import base64
-import openai
+from openai import OpenAI
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def clean_excel(df: pd.DataFrame) -> pd.DataFrame:
     # Rename unnamed columns
@@ -287,13 +284,13 @@ def analyze_data(df: pd.DataFrame, question: str) -> str:
         # Fallback to OpenAI for unknown questions
         try:
             data_summary = f"The dataset has {len(df)} rows and {len(df.columns)} columns: {list(df.columns)}. Data types: {df.dtypes.to_dict()}. Sample data (first 3 rows): {df.head(3).to_dict('records')}. Question: {question}. Provide a helpful analysis or response based on this data."
-            response = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt=data_summary,
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": data_summary}],
                 max_tokens=300,
                 temperature=0.3
             )
-            fallback_response = response.choices[0].text.strip()
+            fallback_response = response.choices[0].message.content.strip()
             analysis.append(fallback_response)
         except Exception as e:
             analysis.append("Unable to generate a detailed response. Please try a more specific question about counts, averages, sums, sorting, or listing data. Use 'list all analysis questions' to see supported options.")
@@ -316,64 +313,6 @@ def audit_log(action: str, user_id: int = None, details: str = None):
     if details:
         message += f", Details: {details}"
     logger.info(message)
-
-def generate_visualization(df: pd.DataFrame, query_type: str, predictions: str = None) -> str:
-    """Generate a base64-encoded visualization based on query type."""
-    plt.figure(figsize=(10, 6))
-    buffer = io.BytesIO()
-
-    try:
-        if query_type == 'predictive' and predictions:
-            # Line chart for predictive data
-            numeric_cols = df.select_dtypes(include=[float, int]).columns
-            if len(numeric_cols) > 0:
-                target_col = numeric_cols[0]
-                values = df[target_col].dropna().values
-                if len(values) > 1:
-                    x = np.arange(len(values))
-                    plt.plot(x, values, label='Historical Data', marker='o')
-                    # Add predicted point
-                    model = LinearRegression()
-                    model.fit(x.reshape(-1, 1), values)
-                    next_x = len(values)
-                    next_value = model.predict([[next_x]])[0]
-                    plt.plot(next_x, next_value, 'ro', label='Predicted Next Value', markersize=10)
-                    plt.title(f'Predictive Analysis for {target_col}')
-                    plt.xlabel('Index')
-                    plt.ylabel(target_col)
-                    plt.legend()
-                    plt.grid(True)
-        elif query_type == 'categorical':
-            # Pie chart for categorical data
-            cat_cols = df.select_dtypes(include=['object']).columns
-            if len(cat_cols) > 0:
-                cat_col = cat_cols[0]
-                counts = df[cat_col].value_counts().head(10)
-                plt.pie(counts.values, labels=counts.index, autopct='%1.1f%%')
-                plt.title(f'Distribution of {cat_col}')
-        else:
-            # General bar chart for numeric columns
-            numeric_cols = df.select_dtypes(include=[float, int]).columns
-            if len(numeric_cols) > 0:
-                means = df[numeric_cols].mean()
-                plt.bar(means.index, means.values)
-                plt.title('Average Values by Column')
-                plt.xlabel('Columns')
-                plt.ylabel('Average Value')
-                plt.xticks(rotation=45)
-            else:
-                plt.text(0.5, 0.5, 'No numeric data available for visualization', ha='center', va='center')
-                plt.title('Visualization Unavailable')
-
-        plt.tight_layout()
-        plt.savefig(buffer, format='png')
-        buffer.seek(0)
-        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
-        plt.close()
-        return image_base64
-    except Exception as e:
-        plt.close()
-        return ""
 
 def sanitize_string(input_string: str) -> str:
     """Sanitize input string to prevent XSS and other attacks."""
