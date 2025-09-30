@@ -1,7 +1,6 @@
 from pydantic import BaseModel
 from passlib.context import CryptContext
 import jwt
-from jwt import InvalidTokenError as PyJWTError
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -77,7 +76,7 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except PyJWTError:
+    except Exception:
         raise credentials_exception
     db = SessionLocal()
     user = db.query(User).filter(User.email == email).first()

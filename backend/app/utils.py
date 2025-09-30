@@ -2,8 +2,6 @@ import pandas as pd
 import re
 import logging
 from datetime import datetime
-from sklearn.linear_model import LinearRegression
-from sklearn.cluster import KMeans
 import numpy as np
 from dotenv import load_dotenv
 import os
@@ -76,15 +74,21 @@ def predict_data(df: pd.DataFrame, question: str) -> str:
         target_col = numeric_cols[0]
         # Create time index
         df_sorted['time_index'] = range(len(df_sorted))
-        X = df_sorted[['time_index']].values
+        x = df_sorted['time_index'].values
         y = df_sorted[target_col].values
 
-        if len(X) > 1:
-            model = LinearRegression()
-            model.fit(X, y)
+        if len(x) > 1:
+            # Simple linear regression
+            n = len(x)
+            sum_x = np.sum(x)
+            sum_y = np.sum(y)
+            sum_xy = np.sum(x * y)
+            sum_x2 = np.sum(x ** 2)
+            m = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x ** 2)
+            b = (sum_y - m * sum_x) / n
             # Predict next value
             next_index = len(df_sorted)
-            next_value = model.predict([[next_index]])[0]
+            next_value = m * next_index + b
             predictions.append(f"Based on trend analysis, the predicted next value for {target_col} is approximately {next_value:.2f}.")
         else:
             predictions.append("Insufficient data points for trend prediction.")
@@ -95,10 +99,15 @@ def predict_data(df: pd.DataFrame, question: str) -> str:
         if len(values) > 1:
             # Simple linear extrapolation
             x = np.arange(len(values))
-            model = LinearRegression()
-            model.fit(x.reshape(-1, 1), values)
+            n = len(x)
+            sum_x = np.sum(x)
+            sum_y = np.sum(values)
+            sum_xy = np.sum(x * values)
+            sum_x2 = np.sum(x ** 2)
+            m = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x ** 2)
+            b = (sum_y - m * sum_x) / n
             next_x = len(values)
-            next_value = model.predict([[next_x]])[0]
+            next_value = m * next_x + b
             predictions.append(f"Extrapolating from {target_col}, the predicted next value is approximately {next_value:.2f}.")
         else:
             predictions.append("Insufficient data for prediction.")
@@ -128,7 +137,6 @@ def analyze_data(df: pd.DataFrame, question: str) -> str:
             "Grouping questions: 'Group by department', 'Average salary by dept', 'Revenue by region', 'Count by gender', 'Sum by country', 'Average by country'",
             "Sorting questions: 'Sort by age', 'Order by name', 'Sort data by country', 'Order employees by id'",
             "Correlation questions: 'Correlation between age and salary', 'Show correlations', 'Correlation matrix'",
-            "Clustering questions: 'Cluster the data', 'Group into clusters', 'K-means clustering'",
             "Time series: 'Sales trend', 'Monthly trend', 'Compare 2022 vs 2023', 'Trend of ages', 'Date distribution'",
             "Charts: 'Bar chart', 'Line chart', 'Pie chart', 'Histogram', 'Age distribution chart'",
             "Financial: 'Profit margin', 'ROI', 'Break even', 'Net profit'",
@@ -224,25 +232,7 @@ def analyze_data(df: pd.DataFrame, question: str) -> str:
         else:
             analysis.append("Not enough numeric columns for correlation analysis.")
 
-    # Handle clustering
-    if 'cluster' in question_lower or 'k-means' in question_lower:
-        numeric_cols = df.select_dtypes(include=[float, int]).columns
-        if len(numeric_cols) > 1:
-            # Use first 2 numeric columns for clustering
-            X = df[numeric_cols[:2]].dropna()
-            if len(X) > 1:
-                kmeans = KMeans(n_clusters=3, random_state=0)
-                clusters = kmeans.fit_predict(X)
-                df_clustered = df.copy()
-                df_clustered['cluster'] = clusters
-                cluster_counts = df_clustered['cluster'].value_counts()
-                analysis.append("Data clustered into 3 groups using K-means:")
-                for cluster, count in cluster_counts.items():
-                    analysis.append(f"Cluster {cluster}: {count} data points")
-            else:
-                analysis.append("Insufficient data for clustering.")
-        else:
-            analysis.append("Not enough numeric columns for clustering.")
+
 
     # Handle chart requests
     if 'pie' in question_lower or 'pie chart' in question_lower:
