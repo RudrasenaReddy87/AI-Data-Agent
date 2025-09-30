@@ -59,3 +59,25 @@
 │   ├── package.json
 │   └── vite.config.js
 └── README.md
+```
+
+## Skills and Features Used
+
+- **Backend Development**: Built with FastAPI for high-performance async web APIs, including user authentication with JWT and bcrypt hashing.
+- **Database Management**: PostgreSQL with SQLAlchemy ORM for efficient data storage and querying.
+- **AI Integration**: LangChain for natural language processing and OpenAI API for advanced data analysis and query understanding.
+- **Frontend Development**: React with Vite for fast development, Tailwind CSS for styling, and Axios for API communication.
+- **File Processing**: Excel file upload and processing, handling multiple sheets and data cleaning.
+- **Data Visualization**: Dynamic chart and table generation for query results.
+- **Authentication & Security**: JWT-based authentication system with secure password hashing.
+- **Deployment**: Docker containerization and Procfile for easy deployment.
+
+## Feature Enhancements
+
+To achieve full functionality, we plan to enhance the AI capabilities using the OpenAI API in the following ways:
+
+- **Advanced Query Understanding**: Integrate OpenAI's GPT models to better parse complex natural language queries, improving accuracy in data analysis.
+- **Intelligent Data Summarization**: Use OpenAI API to generate concise summaries and insights from large datasets.
+- **Conversational AI**: Implement multi-turn conversations where the AI remembers context from previous queries within a session.
+- **Automated Insights**: Leverage OpenAI to automatically suggest relevant questions and provide proactive insights based on uploaded data.
+- **Error Handling and Clarification**: Use AI to handle ambiguous queries by asking for clarification or providing alternative interpretations.
