@@ -269,25 +269,7 @@ def analyze_data(df: pd.DataFrame, question: str) -> str:
             analysis.append("No date and numeric data available for line chart.")
 
     if not analysis:
-        # Fallback to OpenAI for unknown questions
-        api_key = os.getenv("OPENAI_API_KEY")
-        if api_key:
-            try:
-                from openai import OpenAI
-                client = OpenAI(api_key=api_key)
-                data_summary = f"The dataset has {len(df)} rows and {len(df.columns)} columns: {list(df.columns)}. Data types: {df.dtypes.to_dict()}. Sample data (first 3 rows): {df.head(3).to_dict('records')}. Question: {question}. Provide a helpful analysis or response based on this data."
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": data_summary}],
-                    max_tokens=300,
-                    temperature=0.3
-                )
-                fallback_response = response.choices[0].message.content.strip()
-                analysis.append(fallback_response)
-            except Exception as e:
-                analysis.append("Unable to generate a detailed response. Please try a more specific question about counts, averages, sums, sorting, or listing data. Use 'list all analysis questions' to see supported options.")
-        else:
-            analysis.append("Unable to generate a detailed response. Please try a more specific question about counts, averages, sums, sorting, or listing data. Use 'list all analysis questions' to see supported options.")
+        analysis.append("Unable to generate a detailed response. Please try a more specific question about counts, averages, sums, sorting, or listing data. Use 'list all analysis questions' to see supported options.")
 
     return "\n".join(analysis)
 

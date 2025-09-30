@@ -81,3 +81,31 @@ To achieve full functionality, we plan to enhance the AI capabilities using the 
 - **Conversational AI**: Implement multi-turn conversations where the AI remembers context from previous queries within a session.
 - **Automated Insights**: Leverage OpenAI to automatically suggest relevant questions and provide proactive insights based on uploaded data.
 - **Error Handling and Clarification**: Use AI to handle ambiguous queries by asking for clarification or providing alternative interpretations.
+
+## Deployment
+
+### Database: Supabase
+
+The project uses Supabase as the database. The connection is configured in `backend/.env` with the provided DATABASE_URL.
+
+### Backend: Vercel
+
+1. Go to [Vercel](https://vercel.com) and sign in or create an account.
+2. Click "New Project" and import your GitHub repository.
+3. For the backend, select the `backend` directory as the root directory.
+4. Set the following environment variables in Vercel:
+   - `DATABASE_URL`: The Supabase PostgreSQL connection string
+   - `JWT_SECRET`: A secure random string for JWT signing
+   - `OPENAI_API_KEY`: Your OpenAI API key
+5. Deploy the backend.
+
+### Frontend: Vercel
+
+1. In Vercel, create another new project for the frontend.
+2. Select the `frontend` directory as the root directory.
+3. Set the following environment variables:
+   - `VITE_API_BASE_URL`: The URL of the deployed backend (e.g., https://your-backend.vercel.app)
+   - `VITE_SUPABASE_KEY`: The Supabase anon key (eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...)
+4. Deploy the frontend.
+
+The frontend will be accessible at the Vercel-provided URL, and it will communicate with the backend API.
