@@ -1,4 +1,8 @@
 # AI Data Agent
+## AI Data Agent – Intelligent Data Analysis Platform
+AI Data Agent is a full-stack web application that empowers users to analyze their Excel data through natural language queries. By combining a React frontend, FastAPI backend, and PostgreSQL database with AI capabilities powered by LangChain and OpenAI, the system transforms raw spreadsheets into meaningful insights, visualizations, and interactive conversations.
+
+The platform allows users to securely upload Excel files, process multi-sheet and messy datasets, and ask questions in plain English. The AI agent interprets queries, performs analysis, and generates dynamic tables and charts. With JWT-based authentication, session history, and an intuitive UI, AI Data Agent makes data exploration simple, fast, and intelligent.
 
 ● Stack: React frontend, Python backend, SQL database  
 ● Core Feature: File upload system that accepts Excel files and converts them for analysis  
